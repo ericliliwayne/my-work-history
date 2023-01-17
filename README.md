@@ -1,2 +1,3 @@
-# my_work_history
-Record what i have learned and done at work(Continually updated...)
+# 我的工作歷程 #
+## ※這裡將會記錄我工作中所學所做的，不定期持續更新中... ##
+
