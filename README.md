@@ -26,7 +26,8 @@
 
 ## 展示區
 <ol>
-<li><strong>驗證(Validation)</strong></li>
+<li>
+<strong>驗證(Validation)</strong>
 <ul>* 基本(使用預設規則)<br>
 
 ```php
@@ -110,8 +111,89 @@ use App\Rules\Emailsvalid;
 
 </ul>
 </li>
-<li></li>
-<li></li>
+<li>
+<strong>Seeding</strong>
+<ul>
+測試程式時有時會塞一些假資料進資料庫以利測試若一筆一筆輸入較浪費時間，所以可以利用撰寫Seeder的方式來填充假資料。<br>
+* * *<br>
+要撰寫Seeder前先輸入artisan指令:
+
+```php
+php artisan make:seeder ArticleSeeder
+```
+若需要塞大量假資料則可以搭配Factory:
+
+```php
+php artisan make:factory ArticleFactory
+```
+假設我想要產生1萬筆的假資料可以這樣做:<br>
+ArticleFactory:
+
+```php
+class ArticleFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition()
+    {
+        return [
+            'title' => fake()->name(),
+            'textarea' => fake()->name(),
+        ];
+    }
+}
+```
+
+ArticleSeeder:
+
+```php
+class ArticleSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        Article::factory()->count(10000)->create();
+    }
+}
+```
+
+然後執行artisan指令:
+
+```php
+//直接run
+php artisan db:seed
+
+//清除資料表再run
+php artisan migrate:fresh --seed
+```
+
+不過這樣還無法成功執行，因為要先在DatabaseSeeder檔案中 call ArticleSeeder 才能成功執行:
+
+```php
+class DatabaseSeeder extends Seeder
+{
+    public function run()
+    {
+        $this->call([
+            ArticleSeeder::class,
+        ]);
+    }
+}
+```
+
+</ul>
+</li>
+<li>
+<strong>產生API</strong>
+
+</li>
 <li></li>
 <li></li>
 </ol>
