@@ -24,3 +24,102 @@
 <li><a href="https://gitlab.com/">GitLab</a> : 公司新舊專案放置管理的地方。</li>
 </ol>
 
+## 展示區
+<ol>
+<li><strong>驗證(Validation)</strong></li>
+<ul>* 基本(使用預設規則)<br>
+
+```php
+    public function rules()
+    {
+        return [
+            'title' => 'required|string|max:50',
+            'startDate' => 'required|date_format:"Y-m-d\TH:i"|before:endDate',
+            'endDate' => 'required|date_format:"Y-m-d\TH:i"|after:startDate',
+            'position' => 'required|string|max:50',
+            'timeDescription' => 'required|string|max:250',
+            'locationCity' => 'required|string|max:250',
+            'description' => 'required|string|max:10000',
+            'information' => 'required|string|max:10000',
+            'uploadfile' => 'file|nullable',
+            'signUpURL' => 'required|string|max:10000',
+            'sort' => 'integer|required'
+        ];
+    }
+```
+</ul>
+<hr>
+<ul>* 進階(自訂一套規則)<br>
+自訂規則前先下artisan指令:
+
+```php
+php artisan make:rule Emailsvalid --invokable
+```
+
+然後開始自訂規則:
+
+```php
+class Emailsvalid implements InvokableRule
+{
+    /**
+     * Run the validation rule.
+     *
+     * @param  string  $attribute
+     * @param  mixed  $value
+     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
+     * @return void
+     */
+    public function __invoke($attribute, $value, $fail)
+    {
+        $emails = Setup::find(1)->toArray(); //抓取資料庫的email資料
+        $strings['email'] = explode(',',$value); //輸入的多筆資料以「，」分開
+        $strings2 = explode(',',$emails['email_address']); //資料庫的email資料以「，」分開
+
+        foreach ($strings2 as $string2){ //資料庫的email資料分別對照輸入的資料是否重複
+            if(in_array($string2,$strings['email'])){
+                $fail($string2.'已經存在請重新填寫!!');
+            }
+        }
+
+        //將處理好的資料作驗證
+        Validator::make($strings, [
+            'email' => 'required|array',
+            'email.*' => 'required|email',
+        ])->validate();
+
+    }
+}
+```
+
+寫好後引入到原本的Request檔案:
+
+```php
+public function rules()
+    {
+            return [
+                'email_address' => ['required','string',new Emailsvalid],
+            ];
+    }
+```
+記得要use引入進來:
+
+```php
+use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\Emailsvalid;
+```
+
+</ul>
+</li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+</ol>
+
+    
+
+
+
+
+
+
