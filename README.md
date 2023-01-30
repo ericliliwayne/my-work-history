@@ -11,7 +11,11 @@
 目前主要是用這2個開發工具，PhpStorm主要是用在以php框架開發及維護使用；而Visual Studio Code則是用在前端HTML、CSS、Javascript以及原生php上。
 
 ## 使用框架
-目前主要是用<a href="https://laravel.com/">Laravel</a>版本9以及<a href="https://codeigniter.tw/">CodeIgniter</a>版本3，Laravel做專案開發；CodeIgniter做舊專案的維護。Laravel在MVC架構上比CodeIgniter嚴謹但語法上給我簡潔有力的感覺；CodeIgniter雖然也是MVC架構但感覺起來php語法比較偏向原生語法。
+<ol>
+<li><a href="https://laravel.com/">Laravel</a> 版本9</li>
+<li><a href="https://codeigniter.tw/">CodeIgniter</a> 版本3</li>
+</ol>
+Laravel做專案開發；CodeIgniter做舊專案的維護。Laravel在MVC架構上比CodeIgniter嚴謹但語法上給我簡潔有力的感覺；CodeIgniter雖然也是MVC架構但感覺起來php語法比較偏向原生語法。
 
 ## 其他工具
 <ol>
@@ -26,38 +30,23 @@
 
 ## 展示區
 <ol>
-<li>
-<strong>驗證(Validation)</strong>
-<ul>* 基本(使用預設規則)<br>
+<h3><strong>電子信箱驗證</strong></h3>
+<ul>
+使用框架:laravel 9<br>
+功能需求:建立一個輸入欄位可以輸入一個或多個email，送出驗證時需各別驗證每個email是否重複及格示是否正確。<br>
+* * *<br>
+首先，一般email驗證會如以下這樣:
 
 ```php
     public function rules()
     {
         return [
-            'title' => 'required|string|max:50',
-            'startDate' => 'required|date_format:"Y-m-d\TH:i"|before:endDate',
-            'endDate' => 'required|date_format:"Y-m-d\TH:i"|after:startDate',
-            'position' => 'required|string|max:50',
-            'timeDescription' => 'required|string|max:250',
-            'locationCity' => 'required|string|max:250',
-            'description' => 'required|string|max:10000',
-            'information' => 'required|string|max:10000',
-            'uploadfile' => 'file|nullable',
-            'signUpURL' => 'required|string|max:10000',
-            'sort' => 'integer|required'
+            'email' => 'required|email',
         ];
     }
 ```
-</ul>
-<hr>
-<ul>* 進階(自訂一套規則)<br>
-自訂規則前先下artisan指令:
 
-```php
-php artisan make:rule Emailsvalid --invokable
-```
-
-然後開始自訂規則:
+因為預設的驗證模式只能對單一的email字串做驗證，多筆email組成的字串無法直接使用，所以只能透過自訂規則的方式，先把字串拆開成一個一個email的陣列，才能去驗證每個email是否重複及格式是否正確。如以下程式碼所示:
 
 ```php
 class Emailsvalid implements InvokableRule
@@ -102,31 +91,16 @@ public function rules()
             ];
     }
 ```
-記得要use引入進來:
-
-```php
-use Illuminate\Foundation\Http\FormRequest;
-use App\Rules\Emailsvalid;
-```
 
 </ul>
-</li>
-<li>
-<strong>Seeding</strong>
+<hr>
+<h3><strong>資料庫塞入初始資料</strong></h3>
 <ul>
-測試程式時有時會塞一些假資料進資料庫以利測試若一筆一筆輸入較浪費時間，所以可以利用撰寫Seeder的方式來填充假資料。<br>
+測試程式時有時會塞一些資料進資料庫以利測試，若一筆一筆輸入較浪費時間，所以可以利用撰寫Seeder的方式來填充資料。<br>
+使用框架:laravel 9<br>
 * * *<br>
-要撰寫Seeder前先輸入artisan指令:
 
-```php
-php artisan make:seeder ArticleSeeder
-```
-若需要塞大量假資料則可以搭配Factory:
-
-```php
-php artisan make:factory ArticleFactory
-```
-假設我想要產生1萬筆的假資料可以這樣做:<br>
+假設我想要生產1萬筆的資料可以這樣做:<br>
 ArticleFactory:
 
 ```php
@@ -164,17 +138,7 @@ class ArticleSeeder extends Seeder
 }
 ```
 
-然後執行artisan指令:
-
-```php
-//直接run
-php artisan db:seed
-
-//清除資料表再run
-php artisan migrate:fresh --seed
-```
-
-不過這樣還無法成功執行，因為要先在DatabaseSeeder檔案中 call ArticleSeeder 才能成功執行:
+然後執行artisan指令，不過這樣還無法成功執行，因為要先在DatabaseSeeder檔案中 call ArticleSeeder 才能成功執行:
 
 ```php
 class DatabaseSeeder extends Seeder
@@ -189,14 +153,13 @@ class DatabaseSeeder extends Seeder
 ```
 
 </ul>
-</li>
-<li>
-<strong>產生API</strong>
+<hr>
+<h3><strong>產生API</strong></h3>
 
-</li>
-<li></li>
-<li></li>
-</ol>
+<h3><strong>第三方登入</strong></h3>
+<ul>* Google</ul>
+<ul>* Line</ul>
+
 
     
 
