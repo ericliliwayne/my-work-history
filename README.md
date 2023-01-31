@@ -358,7 +358,7 @@ public function blogs(Request $request)
             //第二步:使用第一步撈取的token及其他參數來請求access_token
             let url = new URL('https://api.line.me/oauth2/v2.1/token');
             let urlBody = { //網址要帶的參數
-            grant_type: 'authorization_code',
+                        grant_type: 'authorization_code',
                         code: code, //第一步撈取的token
                         redirect_uri: 'http://localhost/member/login',
                         client_id: 'XXX', //依照實際使用的client_id填寫
