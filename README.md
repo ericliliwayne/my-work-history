@@ -265,8 +265,59 @@ public function blogs(Request $request)
 </ul>
 <hr>
 <h3><strong>第三方登入</strong></h3>
-<ul>* Google</ul>
-<ul>* Line</ul>
+<ul>* Google登入<br>
+利用官方文件的解說先在<a href="https://console.cloud.google.com/">Google Cloud Platform</a>建立API服務專案，然後利用javascript去撈取google會員資料。<br>
+建立登入按鈕及資料屬性:
+
+```html
+                <!-- XXX依照實際client_id做填寫 -->
+                <div id="g_id_onload"
+                     data-client_id="XXX.apps.googleusercontent.com" 
+                     data-callback="handleCallback"
+                     data-auto_prompt="false"
+                >
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
+                </div>
+```
+
+<img src="./PIC/google1.png" alt="googleBtn">
+<img src="./PIC/google2.png" alt="googleBtn"><br>
+建立google api script，接收回傳值(綠框)並做解碼撈取資料(藍框):
+
+```javascript
+//google api script
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+    function parseJwt (token) { //JWT Token 解碼函式
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    };
+    function handleCallback(response) { //撈取回傳值並將credential欄位做解碼
+        const data = parseJwt(response.credential);
+        console.log(response);
+        console.log(data);
+    }
+</script>
+```
+
+<img src="./PIC/google3.png" alt="googleBtn"><br>
+</ul>
+<ul>* Line登入<br>
+
+</ul>
 <hr>
 
 
