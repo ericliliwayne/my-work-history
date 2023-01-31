@@ -260,8 +260,8 @@ public function blogs(Request $request)
 ```
 
 最後利用Postman查看API格式是否符合需求:<br>
-<img src="./pic/API1.png" alt="jsonSuccess">
-<img src="./pic/API2.png" alt="jsonFail">
+<img src="./PIC/API1.png" alt="jsonSuccess">
+<img src="./PIC/API2.png" alt="jsonFail">
 </ul>
 <hr>
 <h3><strong>第三方登入</strong></h3>
