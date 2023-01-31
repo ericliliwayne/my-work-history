@@ -154,14 +154,120 @@ class DatabaseSeeder extends Seeder
 
 </ul>
 <hr>
-<h3><strong>產生API</strong></h3>
+<h3><strong>設計API</strong></h3>
 <ul>
 使用框架:laravel 9<br>
-功能需求:。<br>
+功能需求:和前端工程師討論並設計出部落格文章列表的API。<br>
+* * *<br>
+首先把需要用到的資料撈出來並依照API格式需求把資料處理好:
+
+```php
+private function getData()
+    {   //撈取文章資料
+        $articles = Article::select('articles.id', DB::raw('`articles`.`title` as name'), 'article_categorymappings.category_id', 'articles.created_at', 'articles.updated_at','articles.textarea','articles.uploadfile','articles.home_show','articles.home_show_time')
+            ->leftJoin('article_categorymappings', 'articles.id', '=', 'article_categorymappings.article_id')->where('article_categorymappings.deleted_at',null)
+            ->orderBy('articles.id', 'desc')->get()->toArray();
+        $id = array_column($articles,'id'); //將文章的id值拉出來組成陣列
+        //拉出標籤列表所有資料
+        $tags = ArticleTag::select('articletagmappings.article_id','articletags.id','articletags.tagname')
+                        ->rightJoin('articletagmappings','articletags.id','=','articletagmappings.tag_id')
+                        ->where('articletagmappings.deleted_at',null)
+                        ->whereIn('articletagmappings.article_id',$id)
+                        ->orderBy('articletagmappings.article_id','desc')
+                        ->get()->toArray();
+        $tag = array_column($tags,'article_id'); //將文章標籤的article_id值拉出來組成陣列
+
+              return collect($articles)->map(function ($data, $index) use($tag,$tags){
+                  $removetags = strip_tags($data[ 'textarea' ]); //將textarea中的所有標籤去除成純文字
+                  $key = array_keys($tag,$data['id']); //回傳對應id值的key
+                  $reptag = [];
+                foreach ($key as $row){
+                    unset($tags[$row]['article_id']); //去除欄位article_id
+                    $reptag[] = $tags[$row]; //寫入key值對應到的id,tagname
+                }
+                return [
+                    'id'                  => $data['id'],
+                    'home_show'           => $data['home_show'],
+                    'home_show_time'      => $data['home_show_time'],
+                    'name'                => $data[ 'name' ],
+                    'category_id'         => $data[ 'category_id' ],
+                    'created_at'          => $data[ 'created_at' ],
+                    'updated_at'          => $data[ 'updated_at' ],
+                    'image'               => $data[ 'articlePic' ]['url'] ?? "",
+                    'summary'             => mb_substr($removetags,0,20,"utf-8")."...",
+                    'description'         => $data[ 'textarea' ],
+                    'tags'                => $reptag,
+                    'download'            => $data[ 'uploadfile' ],
+                ];
+            })->toArray();
+    }
+```
+
+再來依照討論好要用的參數條件篩選出資料:
+
+```php
+public function blogs(Request $request)
+    {
+        $typeID = $request->get('type_id');
+        $tagID  = $request->get('tag_id');
+        $home_show = $request->get('home_show');
+        $page    = $request->get('page') ?? 1;
+        $perPage = $request->get('per_page') ?? 20;
+        $data = $this->getData(); //將處理好的資料帶進來
+        $collection = collect($data);
+        $data = $collection->filter(function ($item) use ($typeID, $tagID, $home_show) {
+             //如果 Type id 跟 Tag id 沒有值代表要回傳全部的資料
+            if (!$typeID && !$tagID && !$home_show) {
+                return TRUE;
+            }
+            // 兩個都傳
+            if ($typeID && $tagID) {
+                $isMatch   = $item[ 'category_id' ] === (int)$typeID;
+                $isContain = collect($item[ 'tags' ])->contains('id', (int)$tagID);
+                return $isMatch && $isContain;
+            }
+
+            if ($typeID) { //篩選出指定類別id的文章資料
+                return $item[ 'category_id' ] === (int)$typeID;
+            }
+
+            if ($tagID) { //篩選出含有指定標籤id的文章資料
+                return collect($item[ 'tags' ])->contains('id', (int)$tagID);
+            }
+
+            if ($home_show) { //篩選出要在首頁顯示的文章資料
+                return $item[ 'home_show' ] === (int)$home_show;
+            }
+
+            return FALSE;
+        })->values()->toArray();
+        $count      = $collection->count(); //總計撈出來的文章筆數
+        $arrayVar = [
+            'total'        => $count,
+            'per_page'     => $perPage,
+            'current_page' => $page,
+            'last_page'    => $count / $page,
+            'from'         => $perPage * $page + 1,
+            'to'           => $perPage * $page,
+            'data'         => $data,
+        ];
+        if($typeID && $home_show || $tagID && $home_show){ //若首頁顯示及類別id或標籤id同時存在，則設定查詢失敗
+            return self::jsonFail('失敗',422);
+        }else{
+            return self::jsonSuccess('成功', $arrayVar);
+        }
+    }
+```
+
+最後利用Postman查看API格式是否符合需求:<br>
+<img src="./pic/API1.png" alt="jsonSuccess">
+<img src="./pic/API2.png" alt="jsonFail">
 </ul>
+<hr>
 <h3><strong>第三方登入</strong></h3>
 <ul>* Google</ul>
 <ul>* Line</ul>
+<hr>
 
 
     
