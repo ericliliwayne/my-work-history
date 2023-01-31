@@ -33,7 +33,7 @@ Laravel做專案開發；CodeIgniter做舊專案的維護。Laravel在MVC架構�
 <h3><strong>電子信箱驗證</strong></h3>
 <ul>
 使用框架:laravel 9<br>
-功能需求:建立一個輸入欄位可以輸入一個或多個email，送出驗證時需各別驗證每個email是否重複及格示是否正確。<br>
+功能需求:建立一個輸入欄位可以輸入一個或多個email，送出驗證時需各別驗證每個email是否重複及格式是否正確。<br>
 * * *<br>
 首先，一般email驗證會如以下這樣:
 
@@ -155,7 +155,10 @@ class DatabaseSeeder extends Seeder
 </ul>
 <hr>
 <h3><strong>產生API</strong></h3>
-
+<ul>
+使用框架:laravel 9<br>
+功能需求:。<br>
+</ul>
 <h3><strong>第三方登入</strong></h3>
 <ul>* Google</ul>
 <ul>* Line</ul>
