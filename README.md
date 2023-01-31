@@ -265,8 +265,9 @@ public function blogs(Request $request)
 </ul>
 <hr>
 <h3><strong>第三方登入</strong></h3>
-<ul>* Google登入<br>
-利用官方文件的解說先在<a href="https://console.cloud.google.com/">Google Cloud Platform</a>建立API服務專案，然後利用javascript去撈取google會員資料。<br>
+<ul><strong>* Google登入</strong><br>
+利用官方文件的解說先在 <a href="https://console.cloud.google.com/">Google Cloud Platform</a> 建立API服務專案，然後利用javascript去撈取google會員資料。<br>
+* * *<br>
 建立登入按鈕及資料屬性:
 
 ```html
@@ -287,7 +288,7 @@ public function blogs(Request $request)
                 </div>
 ```
 
-<img src="./PIC/google1.png" alt="googleBtn">
+<img src="./PIC/google1.png" alt="googleBtn"><br>
 <img src="./PIC/google2.png" alt="googleBtn"><br>
 建立google api script，接收回傳值(綠框)並做解碼撈取資料(藍框):
 
@@ -315,8 +316,74 @@ public function blogs(Request $request)
 
 <img src="./PIC/google3.png" alt="googleBtn"><br>
 </ul>
-<ul>* Line登入<br>
+<ul><strong>* Line登入</strong><br>
+登入 <a href="https://developers.line.biz/zh-hant/">LINE Developers</a> 建立new channel ，建立完畢即可撰寫串接Line API的程式碼。<br>
+* * *<br>
+建立登入按鈕:
 
+```html
+<button id="lineLoginBtn" class="formBtnReset">LINE 登入</button>
+```
+
+<img src="./PIC/line1.png" alt="googleBtn"><br>
+<img src="./PIC/line2.png" alt="googleBtn"><br>
+成功登入後會拿到包含 code 的 token (下圖綠框):
+
+```javascript
+<script>
+    //第一步:點擊按鈕 > 會員登入撈取code(token)
+    $('#lineLoginBtn').on('click', function (e) {
+        let client_id = 'XXX'; //XXX依照實際使用的client_id填寫
+        let redirect_uri = 'http://localhost/member/login';
+        let link = 'https://access.line.me/oauth2/v2.1/authorize?';
+        link += 'response_type=code';
+        link += '&client_id=' + client_id;
+        link += '&redirect_uri=' + redirect_uri;
+        link += '&state=XXX';
+        link += '&scope=openid%20profile';
+        window.location.href = link;
+    });
+</script>
+```
+
+再次請求第二次API帶入 code 參數撈取 access_token (下圖藍框):
+
+```javascript
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('state') && urlParams.has('code')) {
+        let state = urlParams.get('state');
+        let code = urlParams.get('code');
+        if (state === 'XXX') {
+            //第二步:使用第一步撈取的token及其他參數來請求access_token
+            let url = new URL('https://api.line.me/oauth2/v2.1/token');
+            let urlBody = { //網址要帶的參數
+            grant_type: 'authorization_code',
+                        code: code, //第一步撈取的token
+                        redirect_uri: 'http://localhost/member/login',
+                        client_id: 'XXX', //依照實際使用的client_id填寫
+                        client_secret: 'XXX', //依照實際使用的client_secret填寫
+            };
+
+            $.ajax({
+                    type: "post",
+                    url: url,
+                    data: urlBody,
+                    success:function(res){
+                        let myObj = res;
+                        console.log(myObj);
+                        let accToken = myObj.access_token; //撈取回傳的access_token
+                        console.log(accToken);
+                    },
+                    error:function(err){console.log(err)},
+                });
+            }
+        }
+</script>
+```
+
+<img src="./PIC/line3.png" alt="googleBtn"><br>
+此 access_token 即可傳送到後端，由後端來依此 access_token 來做會員註冊存取等動作。
 </ul>
 <hr>
 
