@@ -216,7 +216,7 @@ public function blogs(Request $request)
         $data = $this->getData(); //將處理好的資料帶進來
         $collection = collect($data);
         $data = $collection->filter(function ($item) use ($typeID, $tagID, $home_show) {
-             //如果 Type id 跟 Tag id 沒有值代表要回傳全部的資料
+             //如果 Type id 、 Tag id 及 home_show 都沒有值代表要回傳全部的資料
             if (!$typeID && !$tagID && !$home_show) {
                 return TRUE;
             }
@@ -288,8 +288,8 @@ public function blogs(Request $request)
                 </div>
 ```
 
-<img src="./PIC/google1.png" alt="googleBtn"><br>
-<img src="./PIC/google2.png" alt="googleBtn"><br>
+<img src="./PIC/google1.png" alt="googleLogin"><br>
+<img src="./PIC/google2.png" alt="googleLogin2"><br>
 建立google api script，接收回傳值(綠框)並做解碼撈取資料(藍框):
 
 ```javascript
@@ -314,7 +314,7 @@ public function blogs(Request $request)
 </script>
 ```
 
-<img src="./PIC/google3.png" alt="googleBtn"><br>
+<img src="./PIC/google3.png" alt="googleLogin3"><br>
 </ul>
 <ul><strong>* Line登入</strong><br>
 登入 <a href="https://developers.line.biz/zh-hant/">LINE Developers</a> 建立new channel ，建立完畢即可撰寫串接Line API的程式碼。<br>
@@ -325,8 +325,8 @@ public function blogs(Request $request)
 <button id="lineLoginBtn" class="formBtnReset">LINE 登入</button>
 ```
 
-<img src="./PIC/line1.png" alt="googleBtn"><br>
-<img src="./PIC/line2.png" alt="googleBtn"><br>
+<img src="./PIC/line1.png" alt="lineLogin"><br>
+<img src="./PIC/line2.png" alt="lineLogin2"><br>
 成功登入後會拿到包含 code 的 token (下圖綠框):
 
 ```javascript
@@ -382,8 +382,10 @@ public function blogs(Request $request)
 </script>
 ```
 
-<img src="./PIC/line3.png" alt="googleBtn"><br>
-此 access_token 即可傳送到後端，由後端來依此 access_token 來做會員註冊存取等動作。
+<img src="./PIC/line3.png" alt="lineLogin3"><br>
+撈回來的 access_token 和 id_token 即可傳送到後端，由後端來依此來做會員註冊存取等動作。<br>
+<img src="./PIC/line4.png" alt="lineLogin4"><br>
+<img src="./PIC/line5.png" alt="lineLogin5"><br>
 </ul>
 <hr>
 
