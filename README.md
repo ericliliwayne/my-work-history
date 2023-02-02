@@ -340,7 +340,7 @@ public function blogs(Request $request)
         link += '&client_id=' + client_id;
         link += '&redirect_uri=' + redirect_uri;
         link += '&state=XXX';
-        link += '&scope=openid%20profile';
+        link += '&scope=openid%20profile%20email';
         window.location.href = link;
     });
 </script>
