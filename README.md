@@ -49,20 +49,20 @@ Laravel做專案開發；CodeIgniter做舊專案的維護。Laravel在MVC架構�
 因為預設的驗證模式只能對單一的email字串做驗證，多筆email組成的字串無法直接使用，所以只能透過自訂規則的方式，先把字串拆開成一個一個email的陣列，才能去驗證每個email是否重複及格式是否正確。如以下程式碼所示:
 
 ```php
-class Emailsvalid implements InvokableRule
+class Emailvalid implements InvokableRule
 {
     /**
      * Run the validation rule.
      *
-     * @param  string  $attribute
-     * @param  mixed  $value
+     * @param  string  $attr
+     * @param  mixed  $val
      * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
      * @return void
      */
-    public function __invoke($attribute, $value, $fail)
+    public function __invoke($attr, $val, $fail)
     {
-        $emails = Setup::find(1)->toArray(); //抓取資料庫的email資料
-        $strings['email'] = explode(',',$value); //輸入的多筆資料以「，」分開
+        $emails = Email::find(1)->toArray(); //抓取資料庫的email資料
+        $strings['email'] = explode(',',$val); //輸入的多筆資料以「，」分開
         $strings2 = explode(',',$emails['email_address']); //資料庫的email資料以「，」分開
 
         foreach ($strings2 as $string2){ //資料庫的email資料分別對照輸入的資料是否重複
@@ -87,7 +87,7 @@ class Emailsvalid implements InvokableRule
 public function rules()
     {
             return [
-                'email_address' => ['required','string',new Emailsvalid],
+                'emailaddr' => ['required','string',new Emailvalid],
             ];
     }
 ```
@@ -101,10 +101,10 @@ public function rules()
 * * *<br>
 
 假設我想要生產1萬筆的資料可以這樣做:<br>
-ArticleFactory:
+NameFactory:
 
 ```php
-class ArticleFactory extends Factory
+class NameFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -114,17 +114,17 @@ class ArticleFactory extends Factory
     public function definition()
     {
         return [
-            'title' => fake()->name(),
-            'textarea' => fake()->name(),
+            'firstName' => fake()->name(),
+            'lastName' => fake()->name(),
         ];
     }
 }
 ```
 
-ArticleSeeder:
+NameSeeder:
 
 ```php
-class ArticleSeeder extends Seeder
+class NameSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -133,12 +133,12 @@ class ArticleSeeder extends Seeder
      */
     public function run()
     {
-        Article::factory()->count(10000)->create();
+        User::factory()->count(10000)->create();
     }
 }
 ```
 
-然後執行artisan指令，不過這樣還無法成功執行，因為要先在DatabaseSeeder檔案中 call ArticleSeeder 才能成功執行:
+然後執行artisan指令，不過這樣還無法成功執行，因為要先在DatabaseSeeder檔案中 call NameSeeder 才能成功執行:
 
 ```php
 class DatabaseSeeder extends Seeder
@@ -146,7 +146,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call([
-            ArticleSeeder::class,
+            NameSeeder::class,
         ]);
     }
 }
@@ -162,23 +162,23 @@ class DatabaseSeeder extends Seeder
 首先把需要用到的資料撈出來並依照API格式需求把資料處理好:
 
 ```php
-private function getData()
+private function get_data()
     {   //撈取文章資料
-        $articles = Article::select('articles.id', DB::raw('`articles`.`title` as name'), 'article_categorymappings.category_id', 'articles.created_at', 'articles.updated_at','articles.textarea','articles.uploadfile','articles.home_show','articles.home_show_time')
-            ->leftJoin('article_categorymappings', 'articles.id', '=', 'article_categorymappings.article_id')->where('article_categorymappings.deleted_at',null)
-            ->orderBy('articles.id', 'desc')->get()->toArray();
-        $id = array_column($articles,'id'); //將文章的id值拉出來組成陣列
+        $lists = Article::select('article.id', DB::raw('`article`.`title` as name'), 'article_categorymapping.category_id', 'article.created_at', 'article.updated_at','article.textarea','article.uploadfile','article.home_show','article.home_show_time')
+            ->leftJoin('article_categorymapping', 'article.id', '=', 'article_categorymapping.article_id')->where('article_categorymapping.deleted_at',null)
+            ->orderBy('article.id', 'desc')->get()->toArray();
+        $article_id = array_column($lists,'id'); //將文章的id值拉出來組成陣列
         //拉出標籤列表所有資料
-        $tags = ArticleTag::select('articletagmappings.article_id','articletags.id','articletags.tagname')
-                        ->rightJoin('articletagmappings','articletags.id','=','articletagmappings.tag_id')
-                        ->where('articletagmappings.deleted_at',null)
-                        ->whereIn('articletagmappings.article_id',$id)
-                        ->orderBy('articletagmappings.article_id','desc')
+        $article_tags = ArticleTag::select('articletagmapping.article_id','articletag.id','articletag.tagname')
+                        ->rightJoin('articletagmapping','articletag.id','=','articletagmapping.tag_id')
+                        ->where('articletagmapping.deleted_at',null)
+                        ->whereIn('articletagmapping.article_id',$article_id)
+                        ->orderBy('articletagmapping.article_id','desc')
                         ->get()->toArray();
-        $tag = array_column($tags,'article_id'); //將文章標籤的article_id值拉出來組成陣列
+        $tag = array_column($article_tags,'article_id'); //將文章標籤的article_id值拉出來組成陣列
 
-              return collect($articles)->map(function ($data, $index) use($tag,$tags){
-                  $removetags = strip_tags($data[ 'textarea' ]); //將textarea中的所有標籤去除成純文字
+              return collect($lists)->map(function ($data, $index) use($tag,$article_tags){
+                  $remove_tags = strip_tags($data[ 'textarea' ]); //將textarea中的所有標籤去除成純文字
                   $key = array_keys($tag,$data['id']); //回傳對應id值的key
                   $reptag = [];
                 foreach ($key as $row){
@@ -193,11 +193,9 @@ private function getData()
                     'category_id'         => $data[ 'category_id' ],
                     'created_at'          => $data[ 'created_at' ],
                     'updated_at'          => $data[ 'updated_at' ],
-                    'image'               => $data[ 'articlePic' ]['url'] ?? "",
-                    'summary'             => mb_substr($removetags,0,20,"utf-8")."...",
+                    'summary'             => mb_substr($remove_tags,0,30)."...",
                     'description'         => $data[ 'textarea' ],
                     'tags'                => $reptag,
-                    'download'            => $data[ 'uploadfile' ],
                 ];
             })->toArray();
     }
@@ -206,33 +204,33 @@ private function getData()
 再來依照討論好要用的參數條件篩選出資料:
 
 ```php
-public function blogs(Request $request)
+public function articles(Request $request)
     {
-        $typeID = $request->get('type_id');
-        $tagID  = $request->get('tag_id');
+        $type_id = $request->get('type_id');
+        $tag_id  = $request->get('tag_id');
         $home_show = $request->get('home_show');
         $page    = $request->get('page') ?? 1;
-        $perPage = $request->get('per_page') ?? 20;
+        $per_page = $request->get('per_page') ?? 10;
         $data = $this->getData(); //將處理好的資料帶進來
         $collection = collect($data);
-        $data = $collection->filter(function ($item) use ($typeID, $tagID, $home_show) {
+        $data = $collection->filter(function ($item) use ($type_id, $tag_id, $home_show) {
              //如果 Type id 、 Tag id 及 home_show 都沒有值代表要回傳全部的資料
-            if (!$typeID && !$tagID && !$home_show) {
+            if (!$type_id && !$tag_id && !$home_show) {
                 return TRUE;
             }
             // 兩個都傳
-            if ($typeID && $tagID) {
-                $isMatch   = $item[ 'category_id' ] === (int)$typeID;
-                $isContain = collect($item[ 'tags' ])->contains('id', (int)$tagID);
-                return $isMatch && $isContain;
+            if ($type_id && $tag_id) {
+                $is_match   = $item[ 'category_id' ] === (int)$type_id;
+                $is_contain = collect($item[ 'tags' ])->contains('id', (int)$tag_id);
+                return $is_match && $is_contain;
             }
 
-            if ($typeID) { //篩選出指定類別id的文章資料
-                return $item[ 'category_id' ] === (int)$typeID;
+            if ($type_id) { //篩選出指定類別id的文章資料
+                return $item[ 'category_id' ] === (int)$type_id;
             }
 
-            if ($tagID) { //篩選出含有指定標籤id的文章資料
-                return collect($item[ 'tags' ])->contains('id', (int)$tagID);
+            if ($tag_id) { //篩選出含有指定標籤id的文章資料
+                return collect($item[ 'tags' ])->contains('id', (int)$tag_id);
             }
 
             if ($home_show) { //篩選出要在首頁顯示的文章資料
@@ -242,19 +240,19 @@ public function blogs(Request $request)
             return FALSE;
         })->values()->toArray();
         $count      = $collection->count(); //總計撈出來的文章筆數
-        $arrayVar = [
+        $array_var = [
             'total'        => $count,
-            'per_page'     => $perPage,
+            'per_page'     => $per_page,
             'current_page' => $page,
             'last_page'    => $count / $page,
-            'from'         => $perPage * $page + 1,
-            'to'           => $perPage * $page,
+            'from'         => $per_page * $page + 1,
+            'to'           => $per_page * $page,
             'data'         => $data,
         ];
-        if($typeID && $home_show || $tagID && $home_show){ //若首頁顯示及類別id或標籤id同時存在，則設定查詢失敗
+        if($type_id && $home_show || $tag_id && $home_show){ //若首頁顯示及類別id或標籤id同時存在，則設定查詢失敗
             return self::jsonFail('失敗',422);
         }else{
-            return self::jsonSuccess('成功', $arrayVar);
+            return self::jsonSuccess('成功', $array_var);
         }
     }
 ```
@@ -322,7 +320,7 @@ public function blogs(Request $request)
 建立登入按鈕:
 
 ```html
-<button id="lineLoginBtn" class="formBtnReset">LINE 登入</button>
+<button id="line_btn" class="btnReset">LINE 登入</button>
 ```
 
 <img src="./PIC/line1.png" alt="lineLogin"><br>
@@ -334,11 +332,11 @@ public function blogs(Request $request)
     //第一步:點擊按鈕 > 會員登入撈取code(token)
     $('#lineLoginBtn').on('click', function (e) {
         let client_id = 'XXX'; //XXX依照實際使用的client_id填寫
-        let redirect_uri = 'http://localhost/member/login';
+        let redirect_url = 'http://localhost/member/login';
         let link = 'https://access.line.me/oauth2/v2.1/authorize?';
         link += 'response_type=code';
         link += '&client_id=' + client_id;
-        link += '&redirect_uri=' + redirect_uri;
+        link += '&redirect_uri=' + redirect_url;
         link += '&state=XXX';
         link += '&scope=openid%20profile%20email';
         window.location.href = link;
@@ -350,14 +348,14 @@ public function blogs(Request $request)
 
 ```javascript
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
+    const url_params = new URLSearchParams(window.location.search);
     if (urlParams.has('state') && urlParams.has('code')) {
-        let state = urlParams.get('state');
-        let code = urlParams.get('code');
+        let state = url_params.get('state');
+        let code = url_Params.get('code');
         if (state === 'XXX') {
             //第二步:使用第一步撈取的token及其他參數來請求access_token
             let url = new URL('https://api.line.me/oauth2/v2.1/token');
-            let urlBody = { //網址要帶的參數
+            let data = { //網址要帶的參數
                         grant_type: 'authorization_code',
                         code: code, //第一步撈取的token
                         redirect_uri: 'http://localhost/member/login',
@@ -368,12 +366,12 @@ public function blogs(Request $request)
             $.ajax({
                     type: "post",
                     url: url,
-                    data: urlBody,
+                    data: data,
                     success:function(res){
-                        let myObj = res;
-                        console.log(myObj);
-                        let accToken = myObj.access_token; //撈取回傳的access_token
-                        console.log(accToken);
+                        let obj = res;
+                        console.log(obj);
+                        let acc_token = obj.access_token; //撈取回傳的access_token
+                        console.log(acc_token);
                     },
                     error:function(err){console.log(err)},
                 });
